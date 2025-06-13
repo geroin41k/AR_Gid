@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Photo Sphere Viewer Example</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@5/dist/photo-sphere-viewer.css">
+  <style>
+    html, body { margin: 0; height: 100%; }
+    #viewer { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="viewer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@5/dist/photo-sphere-viewer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/uevent@2/browser.min.js"></script>
+  <script>
+    // Ініціалізація переглядача
+    const viewer = new PhotoSphereViewer.Viewer({
+      container: document.querySelector('#viewer'),
+      panorama: 'panorama_combined.jpg',
+      defaultYaw: 0,    // центрувати горизонтально
+      defaultPitch: 0,  // центрувати вертикально
+      plugins: [
+        [PhotoSphereViewer.MarkersPlugin, {
+          markers: [
+            {
+              id: 'center-lab',
+              longitude: 0,        // yaw у радіанах
+              latitude: 0,         // pitch у радіанах
+              tooltip: 'Центр лабораторії',
+              anchor: 'bottom center'
+            }
+          ]
+        }]
+      ]
+    });
+
+    // Щоб додати інші точки (hotspot), отримайте плагін маркерів і використовуйте addMarker():
+    // const markers = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
+    // markers.addMarker({
+    //   id: 'another-point',
+    //   longitude: Math.PI / 4, // yaw: 45°
+    //   latitude: 0.1,          // pitch ~5.7°
+    //   tooltip: 'Назва точки',
+    //   anchor: 'bottom center'
+    // });
+
+    // Натисніть на сцену, щоб додати тимчасову точку. Її координати
+    // будуть видруковані у консоль. Позначка зникає автоматично через 5 секунд.
+    viewer.once('ready', () => {
+      viewer.on('click', (e, data) => {
+        const markers = viewer.getPlugin(PhotoSphereViewer.MarkersPlugin);
+        const id = `temp-${Date.now()}`;
+        markers.addMarker({
+          id,
+          longitude: data.yaw,
+          latitude: data.pitch,
+          tooltip: 'Нова точка',
+          anchor: 'bottom center'
+        });
+        console.log('added marker at yaw', data.yaw, 'pitch', data.pitch);
+        setTimeout(() => markers.removeMarker(id), 5000);
+      });
+    });
+  </script>
+</body>
+</html>
